@@ -303,7 +303,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 		$query = ee('db');
 		$query->set($values);
 		$query->insert($field->getTableName());
-		$id = $query->insert_id();
+		$id = ee()->db->insert_id();
 
 		$fluid_field->field_data_id = $id;
 		$fluid_field->save();
