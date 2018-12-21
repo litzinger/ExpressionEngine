@@ -8,6 +8,7 @@
  * @license   https://expressionengine.com/license Licensed under Apache License, Version 2.0
  */
 
+use EllisLab\Addons\FluidField\Model\FluidField;
 use EllisLab\ExpressionEngine\Model\Content\FieldFacade;
 
 /**
@@ -271,20 +272,37 @@ class Fluid_field_ft extends EE_Fieldtype {
 		return $values;
 	}
 
-	private function updateField($fluid_field, $order, array $values)
+	/**
+	 * @param FluidField $fluid_field
+	 * @param int $order
+	 * @param array $values
+	 */
+	private function updateField(FluidField $fluid_field, $order, array $values = [])
 	{
 		$values = $this->prepareData($fluid_field, $values);
 
 		$fluid_field->order = $order;
 		$fluid_field->save();
 
-		$query = ee('db');
-		$query->set($values);
-		$query->where('id', $fluid_field->field_data_id);
-		$query->update($fluid_field->ChannelField->getTableName());
+		$field_data_id = $fluid_field->field_data_id;
+		$field_table_name = $fluid_field->ChannelField->getTableName();
+
+		if (ee()->extensions->active_hook('fluid_field_get_all_data') === TRUE)
+		{
+			ee()->extensions->call('fluid_field_update_field', $field_data_id, $field_table_name, $values);
+		}
+		else
+		{
+			ee('db')->set($values)->where('id', $field_data_id)->update($field_table_name);
+		}
 	}
 
-	private function addField($order, $field_id, array $values)
+	/**
+	 * @param int $order
+	 * @param int $field_id
+	 * @param array $values
+	 */
+	private function addField($order, $field_id, array $values = [])
 	{
 		$fluid_field = ee('Model')->make('fluid_field:FluidField');
 		$fluid_field->fluid_field_id = $this->field_id;
@@ -302,13 +320,27 @@ class Fluid_field_ft extends EE_Fieldtype {
 
 		$field = ee('Model')->get('ChannelField', $field_id)->first();
 
-		$query = ee('db');
-		$query->set($values);
-		$query->insert($field->getTableName());
-		$id = $query->insert_id();
+		$field_table_name = $field->getTableName();
 
-		$fluid_field->field_data_id = $id;
-		$fluid_field->save();
+		if (ee()->extensions->active_hook('fluid_field_add_field') === TRUE)
+		{
+			$id = ee()->extensions->call('fluid_field_add_field', $field_table_name, $values);
+
+			// If an ID is not returned assume the table was updated by the hook call
+			if ($id !== FALSE && intval($id)) {
+				$fluid_field->field_data_id = $id;
+				$fluid_field->save();
+			}
+		}
+		else
+		{
+			$query = ee('db')->set($values)->insert($field_table_name);
+
+			$id = $query->insert_id();
+
+			$fluid_field->field_data_id = $id;
+			$fluid_field->save();
+		}
 	}
 
 	private function removeField($fluid_field)
