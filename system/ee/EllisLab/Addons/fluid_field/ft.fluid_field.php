@@ -8,6 +8,8 @@
  * @license   https://expressionengine.com/license Licensed under Apache License, Version 2.0
  */
 
+use EllisLab\ExpressionEngine\Model\Content\FieldFacade;
+
 /**
  * Fluid Field Fieldtype
  */
@@ -520,7 +522,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 
 			if ( ! empty($removed_fields))
 			{
-				$fluid_field_data = ee('Model')->get('fluid_field:FluidField')
+				ee('Model')->get('fluid_field:FluidField')
 					->filter('fluid_field_id', $this->field_id)
 					->filter('field_id', 'IN', $removed_fields)
 					->all()
@@ -566,7 +568,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 	 */
 	public function delete($entry_ids)
 	{
-		$fluid_field_data = ee('Model')->get('fluid_field:FluidField')
+		ee('Model')->get('fluid_field:FluidField')
 			->filter('fluid_field_id', $this->field_id)
 			->filter('entry_id', 'IN', $entry_ids)
 			->all()
@@ -608,21 +610,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 		$fluid_field_id = ($fluid_field_id) ?: $this->field_id;
 		$entry_id = ($entry_id) ?: $this->content_id;
 
-		$cache_key = "FluidField/{$fluid_field_id}/{$entry_id}";
-
-		if (($fluid_field_data = ee()->session->cache("FluidField", $cache_key, FALSE)) === FALSE)
-		{
-			$fluid_field_data = ee('Model')->get('fluid_field:FluidField')
-				->with('ChannelField')
-				->filter('fluid_field_id', $fluid_field_id)
-				->filter('entry_id', $entry_id)
-				->order('order')
-				->all();
-
-			ee()->session->set_cache("FluidField", $cache_key, $fluid_field_data);
-		}
-
-		return $fluid_field_data;
+		return ee('Model')->make('fluid_field:FluidField')->fetchAllFieldData($entry_id, $fluid_field_id);
 	}
 
 	/**
