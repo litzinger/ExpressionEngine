@@ -289,7 +289,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 
 		if (ee()->extensions->active_hook('fluid_field_get_all_data') === TRUE)
 		{
-			ee()->extensions->call('fluid_field_update_field', $field_data_id, $field_table_name, $values);
+            ee()->extensions->call('fluid_field_update_field', $fluid_field, $field_table_name, $values);
 		}
 		else
 		{
@@ -324,7 +324,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 
 		if (ee()->extensions->active_hook('fluid_field_add_field') === TRUE)
 		{
-			$id = ee()->extensions->call('fluid_field_add_field', $field_table_name, $values);
+            $id = ee()->extensions->call('fluid_field_add_field', $fluid_field, $field_table_name, $values);
 
 			// If an ID is not returned assume the table was updated by the hook call
 			if ($id !== FALSE && intval($id)) {
