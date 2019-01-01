@@ -333,7 +333,7 @@ class Fluid_field_ft extends EE_Fieldtype {
 			}
 		}
 		else
-		{		
+		{
 			$query = ee('db');
 			$query->set($values);
 			$query->insert($field_table_name);
@@ -346,11 +346,18 @@ class Fluid_field_ft extends EE_Fieldtype {
 
 	private function removeField($fluid_field)
 	{
-		$query = ee('db');
-		$query->where('id', $fluid_field->field_data_id);
-		$query->delete($fluid_field->ChannelField->getTableName());
+		if (ee()->extensions->active_hook('fluid_field_remove_field') === TRUE)
+		{
+			ee()->extensions->call('fluid_field_remove_field', $fluid_field);
+		}
+		else
+		{
+			$query = ee('db');
+			$query->where('id', $fluid_field->field_data_id);
+			$query->delete($fluid_field->ChannelField->getTableName());
 
-		$fluid_field->delete();
+			$fluid_field->delete();
+		}
 	}
 
 	/**
