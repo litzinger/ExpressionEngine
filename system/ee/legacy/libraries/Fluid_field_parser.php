@@ -21,6 +21,7 @@ class Fluid_field_parser {
 	protected $data = [];
 	protected $possible_fields = [];
 	protected $fluid_fields = [];
+	private $_prefix = '';
 
 	public function __construct()
 	{
@@ -110,7 +111,7 @@ class Fluid_field_parser {
 	 *
 	 * @param array $entry_id A list of entry ids
 	 * @param array $fluid_field_ids A list of fluid field ids
-	 * @return obj A Colletion of FluidField model entities
+	 * @return object A Collection of FluidField model entities
 	 */
 	private function fetchFluidFields(array $entry_ids, array $fluid_field_ids)
 	{
@@ -145,9 +146,9 @@ class Fluid_field_parser {
 	/**
 	 * Replaces data with preview data when said data is available.
 	 *
-	 * @param obj Fluid field Collection
+	 * @param object Fluid field Collection
 	 * @param array An array of fluid field ids
-	 * @return obj A Colletion of FluidField model entities
+	 * @return object A Collection of FluidField model entities
 	 */
 	public function overrideWithPreviewData(Collection $fluid_field_data, array $fluid_field_ids)
 	{
@@ -341,9 +342,9 @@ class Fluid_field_parser {
 	 * evaluates it, returning its value.
 	 *
 	 * @param string The variable tag
-	 * @param obj  A collection of FluidField model entities
-	 * @param obj  The current field in the Fluid being processed
-	 * @return int  The evaulated value
+	 * @param object A collection of FluidField model entities
+	 * @param object The current field in the Fluid being processed
+	 * @return int The evaluated value
 	 */
 	private function evaluateSingleVariable($var, Collection $fluid_field_data, FluidField $current_field)
 	{

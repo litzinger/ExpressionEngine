@@ -148,9 +148,9 @@ class FluidField extends Model {
 					->filter('entry_id', $entry_id)
 					->order('order')
 					->all();
-			}
 
-			ee()->session->set_cache("FluidField", $cache_key, $data);
+				ee()->session->set_cache("FluidField", $cache_key, $data);
+			}
 		}
 
 		return $data;
@@ -211,9 +211,9 @@ class FluidField extends Model {
 						$fluid_fields[$row['id']]->setFieldData($row);
 					}
 				}
-			}
 
-			ee()->session->set_cache("FluidField", $cache_key, $data);
+				ee()->session->set_cache("FluidField", $cache_key, $data);
+			}
 		}
 
 		return $data;
