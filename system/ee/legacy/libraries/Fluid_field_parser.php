@@ -105,29 +105,6 @@ class Fluid_field_parser {
 	}
 
 	/**
-	 * Gets a list of field names for a given set of field ids
-	 *
-	 * @param array A list of channel field ids
-	 * @return array A list of field_names
-	 */
-	private function getPossibleFields(array $field_channel_fields)
-	{
-		$cache_key = 'ChannelFields/' . implode($field_channel_fields, ',') . '/field_name';
-
-		if (($possible_fields = ee()->session->cache(__CLASS__, $cache_key, FALSE)) === FALSE)
-		{
-			$possible_fields = ee('Model')->get('ChannelField', $field_channel_fields)
-				->fields('field_id', 'field_name', 'field_type')
-				->all()
-				->indexBy('field_id');
-
-			ee()->session->set_cache(__CLASS__, $cache_key, $possible_fields);
-		}
-
-		return $possible_fields;
-	}
-
-	/**
 	 * Given a list of entry ids, fluid field ids, and field ids used in the
 	 * fluid fields, this bulk-fetches all the needed data for the field fields.
 	 *
