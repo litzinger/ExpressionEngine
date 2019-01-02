@@ -157,44 +157,9 @@ class Fluid_field_parser {
 		}
 		else
 		{
-			$fluid_field_data = ee('Model')->get('fluid_field:FluidField')
-				->with('ChannelField')
-				->filter('fluid_field_id', 'IN', $fluid_field_ids)
-				->filter('entry_id', 'IN', $entry_ids)
-				->order('fluid_field_id')
-				->order('entry_id')
-				->order('order')
-				->all();
-
-			// Since we store the data in the field's table, and each field has its
-			// own table, we'll group our fluid field data by the field_id. This will
-			// allow us to run one query per field, fetching all the data across
-			// all the fluid fields & entries for each field.
-			$fields = [];
-
-			foreach ($fluid_field_data as $fluid_field)
-			{
-				if ( ! array_key_exists($fluid_field->field_id, $fields))
-				{
-					$fields[$fluid_field->field_id] = [];
-				}
-
-				$fields[$fluid_field->field_id][$fluid_field->field_data_id] = $fluid_field;
-			}
-
-			foreach ($fields as $field_id => $fluid_fields)
-			{
-				$field_data_ids = array_keys($fluid_fields);
-
-				// Captain Obvious says: here we be gettin' the data, Arrrr!
-				ee()->db->where_in('id', $field_data_ids);
-				$rows = ee()->db->get('channel_data_field_' . $field_id)->result_array();
-
-				foreach($rows as $row)
-				{
-					$fluid_fields[$row['id']]->setFieldData($row);
-				}
-			}
+			$fluid_field_data = ee('Model')
+				->make('fluid_field:FluidField')
+				->fetchAllFluidData($entry_ids, $fluid_field_ids);
 		}
 
 		return $this->overrideWithPreviewData($fluid_field_data, $fluid_field_ids);

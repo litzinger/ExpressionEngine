@@ -126,8 +126,8 @@ class FluidField extends Model {
 	}
 
 	/**
-	 * @param $entry_id
-	 * @param $fluid_field_id
+	 * @param int $entry_id
+	 * @param int $fluid_field_id
 	 * @return array
 	 */
 	public function fetchAllFieldData($entry_id, $fluid_field_id)
@@ -140,7 +140,7 @@ class FluidField extends Model {
 		{
 			$cache_key = "FluidField/{$fluid_field_id}/{$entry_id}";
 
-			if (($fluid_field_data = ee()->session->cache("FluidField", $cache_key, FALSE)) === FALSE)
+			if (($data = ee()->session->cache("FluidField", $cache_key, FALSE)) === FALSE)
 			{
 				$data = $this->getModelFacade()->get('fluid_field:FluidField')
 					->with('ChannelField')
@@ -155,6 +155,70 @@ class FluidField extends Model {
 
 		return $data;
 	}
+
+	/**
+	 * @param array $entry_ids
+	 * @param array $fluid_field_ids
+	 * @return array
+	 */
+	public function fetchAllFluidData(array $entry_ids = [], array $fluid_field_ids = [])
+	{
+		if (ee()->extensions->active_hook('fluid_field_get_all_fluid_data') === TRUE)
+		{
+			$data = ee()->extensions->call('fluid_field_get_all_fluid_data', $entry_ids, $entry_ids);
+		}
+		else
+		{
+			$cache_key = 'FluidField/'. md5(serialize($fluid_field_ids)) .'/'. md5(serialize($entry_ids));
+
+			if (($data = ee()->session->cache("FluidField", $cache_key, FALSE)) === FALSE)
+			{
+				$data = ee('Model')->get('fluid_field:FluidField')
+					->with('ChannelField')
+					->filter('fluid_field_id', 'IN', $fluid_field_ids)
+					->filter('entry_id', 'IN', $entry_ids)
+					->order('fluid_field_id')
+					->order('entry_id')
+					->order('order')
+					->all();
+
+				// Since we store the data in the field's table, and each field has its
+				// own table, we'll group our fluid field data by the field_id. This will
+				// allow us to run one query per field, fetching all the data across
+				// all the fluid fields & entries for each field.
+				$fields = [];
+
+				foreach ($data as $fluid_field)
+				{
+					if ( ! array_key_exists($fluid_field->field_id, $fields))
+					{
+						$fields[$fluid_field->field_id] = [];
+					}
+
+					$fields[$fluid_field->field_id][$fluid_field->field_data_id] = $fluid_field;
+				}
+
+				foreach ($fields as $field_id => $fluid_fields)
+				{
+					$field_data_ids = array_keys($fluid_fields);
+
+					// Captain Obvious says: here we be gettin' the data, Arrrr!
+					ee()->db->where_in('id', $field_data_ids);
+					$rows = ee()->db->get('channel_data_field_' . $field_id)->result_array();
+
+					foreach($rows as $row)
+					{
+						$fluid_fields[$row['id']]->setFieldData($row);
+					}
+				}
+			}
+
+			ee()->session->set_cache("FluidField", $cache_key, $data);
+		}
+
+		return $data;
+	}
+
 
 	public function getFieldData()
 	{
