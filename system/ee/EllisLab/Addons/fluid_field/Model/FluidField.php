@@ -10,6 +10,7 @@
 
 namespace EllisLab\Addons\FluidField\Model;
 
+use EllisLab\ExpressionEngine\Model\Channel\ChannelField;
 use EllisLab\ExpressionEngine\Service\Model\Model;
 use EllisLab\ExpressionEngine\Model\Content\FieldData;
 
@@ -86,11 +87,18 @@ class FluidField extends Model {
 		}
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function getSessionCacheKey()
 	{
 		return "ChannelField/{$this->field_id}/Data/{$this->field_data_id}";
 	}
 
+	/**
+	 * @param array $data
+	 * @return FieldData
+	 */
 	public function setFieldData(array $data)
 	{
 		$field_data = ee('Model')->make('FieldData')->forField($this->ChannelField);
@@ -173,7 +181,7 @@ class FluidField extends Model {
 
 			if (($data = ee()->session->cache("FluidField", $cache_key, FALSE)) === FALSE)
 			{
-				$data = ee('Model')->get('fluid_field:FluidField')
+				$data = $this->getModelFacade()->get('fluid_field:FluidField')
 					->with('ChannelField')
 					->filter('fluid_field_id', 'IN', $fluid_field_ids)
 					->filter('entry_id', 'IN', $entry_ids)
@@ -219,7 +227,9 @@ class FluidField extends Model {
 		return $data;
 	}
 
-
+	/**
+	 * @return FieldData
+	 */
 	public function getFieldData()
 	{
 		if (($field_data = ee()->session->cache(__CLASS__, $this->getSessionCacheKey(), FALSE)) === FALSE)
@@ -230,6 +240,10 @@ class FluidField extends Model {
 		return $field_data;
 	}
 
+	/**
+	 * @param FieldData|NULL $field_data
+	 * @return ChannelField
+	 */
 	public function getField(FieldData $field_data = NULL)
 	{
 		$field = $this->ChannelField->getField();
