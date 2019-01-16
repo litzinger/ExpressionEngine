@@ -265,6 +265,11 @@ class CI_DB_driver {
 			$this->initialize();
 		}
 
+		if (isset(ee()->extensions) && ee()->extensions->active_hook('core_db_execute') === TRUE)
+		{
+			ee()->extensions->call('core_db_execute', $sql);
+		}
+
 		$this->last_query = $sql;
 
 		return $this->_execute($sql);
