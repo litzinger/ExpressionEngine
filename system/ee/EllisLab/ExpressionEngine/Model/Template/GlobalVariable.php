@@ -22,6 +22,8 @@ class GlobalVariable extends FileSyncedModel {
 	protected static $_primary_key = 'variable_id';
 	protected static $_table_name  = 'global_variables';
 
+	protected static $_hook_id = 'global_variable';
+
 	protected static $_relationships = array(
 		'Site' => array(
 			'type' => 'belongsTo'
@@ -273,7 +275,7 @@ class GlobalVariable extends FileSyncedModel {
 			if ($item->isFile() && $item->getExtension() == 'html')
 			{
 				$name = $item->getBasename('.html');
-				
+
 				// limited to 50 characters in db
 				if (strlen($name) > 50)
 				{
