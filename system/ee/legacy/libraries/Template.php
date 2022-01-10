@@ -291,15 +291,15 @@ class EE_Template
 
         // load site variables into the global_vars array
         foreach (array(
-            'site_id',
-            'site_label',
-            'site_short_name',
-            'site_name',
-            'site_url',
-            'site_description',
-            'site_index',
-            'webmaster_email'
-        ) as $site_var) {
+                     'site_id',
+                     'site_label',
+                     'site_short_name',
+                     'site_name',
+                     'site_url',
+                     'site_description',
+                     'site_index',
+                     'webmaster_email'
+                 ) as $site_var) {
             ee()->config->_global_vars[$site_var] = stripslashes(ee()->config->item($site_var));
         }
 
@@ -324,7 +324,7 @@ class EE_Template
         $added_globals['frontedit'] = false;
         if (IS_PRO && ee('pro:Access')->hasValidLicense() && ee('pro:Access')->hasDockPermission()) {
             if (
-                REQ == 'PAGE' && 
+                REQ == 'PAGE' &&
                 ee()->session->userdata('admin_sess') == 1 &&
                 (ee()->config->item('enable_frontedit') == 'y' || ee()->config->item('enable_frontedit') === false) &&
                 (isset(ee()->TMPL) && is_object(ee()->TMPL) && in_array(ee()->TMPL->template_type, ['webpage'])) &&
@@ -936,7 +936,7 @@ class EE_Template
                     break;
                 case 'set':
                     $this->layout_vars[$params['name']] = $value;
-                    // no break
+                // no break
                 default:
                     break;
             }
@@ -1428,6 +1428,12 @@ class EE_Template
     {
         $plugins = array();
         $modules = array();
+        $aliases = array();
+
+        if (ee()->config->item('tag_aliases')) {
+            $aliases = ee()->config->item('tag_aliases');
+            $this->modules = array_merge($this->modules, array_keys($aliases));
+        }
 
         // Fill an array with the names of all the classes that we previously extracted from the tags
 
@@ -1638,18 +1644,26 @@ class EE_Template
                 $this->var_single = $vars['var_single'];
                 $this->var_pair = $vars['var_pair'];
 
-                // Assign the class name and method name
-                $addon = ee('Addon')->get($this->tag_data[$i]['class']);
-                $class_name = ucfirst($this->tag_data[$i]['class']);
+                $package_path = '';
+
+                // Switch to alias
+                if (in_array($this->tag_data[$i]['class'], $this->modules) && array_key_exists($this->tag_data[$i]['class'], $aliases)) {
+                    $class_name = $aliases[$this->tag_data[$i]['class']]['class_name'];
+                    $addon = ee('Addon')->get($aliases[$this->tag_data[$i]['class']]['tag_name']);
+                    $package_path = PATH_THIRD . strtolower($aliases[$this->tag_data[$i]['class']]['tag_name'] . '/');
+                } else {
+                    // Assign the class name and method name
+                    $addon = ee('Addon')->get($this->tag_data[$i]['class']);
+                    $class_name = ucfirst($this->tag_data[$i]['class']);
+                }
+
                 $meth_name = $this->tag_data[$i]['method'];
 
                 // If it's a third party class or a first party module,
                 // add the root folder to the loader paths so we can use
                 // libraries, models, and helpers
 
-                $package_path = '';
-
-                if (! in_array($this->tag_data[$i]['class'], ee()->core->native_plugins)) {
+                if (!$package_path && !in_array($this->tag_data[$i]['class'], ee()->core->native_plugins)) {
                     $package_path = in_array($this->tag_data[$i]['class'], ee()->core->native_modules) ? PATH_ADDONS : PATH_THIRD;
                     $package_path .= strtolower($this->tag_data[$i]['class'] . '/');
 
@@ -1681,8 +1695,8 @@ class EE_Template
 
                 // Does method exist?  Is This A Module and Is It Installed?
                 if ((in_array($this->tag_data[$i]['class'], $this->modules) &&
-                              ! isset($this->module_data[$class_name])) or
-                              ! is_callable(array($EE, $meth_name))) {
+                        ! isset($this->module_data[$class_name])) or
+                    ! is_callable(array($EE, $meth_name))) {
                     $this->log_item("Tag Not Processed: Method Inexistent or Module Not Installed");
 
                     if (ee()->config->item('debug') >= 1) {
@@ -1791,16 +1805,16 @@ class EE_Template
                 case 'on':
                     return 'yes';
 
-                break;
+                    break;
                 case 'n':
                 case 'off':
                     return 'no';
 
-                break;
+                    break;
                 default:
                     return $this->tagparams[$which];
 
-                break;
+                    break;
             }
         }
     }
@@ -2106,7 +2120,7 @@ class EE_Template
 
         // Is only the pagination showing in the URI?
         elseif (count(ee()->uri->segments) == 1 &&
-                preg_match("#^(P\d+)$#", ee()->uri->segment(1), $match)) {
+            preg_match("#^(P\d+)$#", ee()->uri->segment(1), $match)) {
             ee()->uri->query_string = $match['1'];
 
             return $this->fetch_template('', 'index', true);
@@ -2477,7 +2491,7 @@ class EE_Template
 
         // Is the current user allowed to view this template?
         if ($query->row('enable_http_auth') != 'y' && ! ee('Permission')->isSuperAdmin()) {
-            
+
             ee()->db->select('role_id');
             ee()->db->where('template_id', $query->row('template_id'));
             $results = ee()->db->get('templates_roles');
@@ -2486,8 +2500,8 @@ class EE_Template
                 foreach ($results->result_array() as $row) {
                     $templates_roles[] = $row['role_id'];
                 }
-            } 
-            
+            }
+
             if (!ee()->session->getMember()) {
                 $currentMemberRoles = [3];
             } else {
@@ -2521,7 +2535,7 @@ class EE_Template
                         foreach ($results->result_array() as $row) {
                             $templates_roles[] = $row['role_id'];
                         }
-                    } 
+                    }
                     if (!array_intersect($templates_roles, $currentMemberRoles)) {
                         $this->log_item("Access redirect denied, Show 404");
 
